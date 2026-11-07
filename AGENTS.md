@@ -56,3 +56,11 @@ gofmt -l . && go build ./... && go vet ./... && go test -race ./...
 ```
 
 `gofmt -l` must print nothing.
+
+## Layout
+
+Dependencies point one way: `cmd/talos → internal/tools → internal/task →
+{internal/opencode, internal/gitwt}`, with `internal/config` read by `cmd/talos`.
+Only `cmd/talos` and `internal/tools` import Argon, so task logic is testable
+without MCP. Task tests use a fake `task.Backend` and real temporary git
+repositories.
