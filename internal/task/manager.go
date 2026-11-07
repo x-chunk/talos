@@ -54,6 +54,7 @@ type Options struct {
 	Timeout           time.Duration
 	MaxSteps          int
 	PermissionTimeout time.Duration
+	ResultLimit       int
 	ShellDeny         []string
 
 	// PID identifies this instance as task owner. Default os.Getpid().

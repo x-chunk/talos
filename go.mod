@@ -5,6 +5,7 @@ go 1.26.0
 require go.xchunk.org/argon v0.1.0-rc.1
 
 require (
+	github.com/go-jose/go-jose/v4 v4.1.6 // indirect
 	github.com/google/jsonschema-go v0.4.3 // indirect
 	github.com/modelcontextprotocol/go-sdk v1.8.0 // indirect
 	github.com/segmentio/asm v1.1.3 // indirect
