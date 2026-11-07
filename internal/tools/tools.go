@@ -25,6 +25,7 @@ const (
 // Register adds the task tools to s.
 func Register(s *argon.Server, m *task.Manager) {
 	registerLifecycle(s, m)
+	registerResults(s, m)
 }
 
 // Pending is a permission request awaiting respond_permission.
