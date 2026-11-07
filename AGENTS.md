@@ -46,3 +46,13 @@ directories.
 Update `AGENTS.md` whenever development changes what it says or adds something
 a future contributor needs to know, such as new commands, layout, conventions
 or decisions. Make the update in the same commit as the change that caused it.
+
+## Checks
+
+Every commit must pass:
+
+```sh
+gofmt -l . && go build ./... && go vet ./... && go test -race ./...
+```
+
+`gofmt -l` must print nothing.
