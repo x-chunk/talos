@@ -27,6 +27,13 @@ type fakeBackend struct {
 	createErr   error
 	promptErr   error
 	blockCreate chan struct{}
+
+	active      map[string]bool
+	activeErr   error
+	messages    map[string][]opencode.Message
+	messagesErr error
+	permissions map[string][]opencode.PermissionRequest
+	children    map[string][]opencode.Session
 }
 
 func (f *fakeBackend) Ensure(context.Context) (opencode.Info, error) {
@@ -78,15 +85,27 @@ func (f *fakeBackend) ReplyPermission(context.Context, string, string, string, s
 }
 
 func (f *fakeBackend) ActiveSessions(context.Context) (map[string]bool, error) {
-	return map[string]bool{}, nil
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.active, f.activeErr
 }
 
-func (f *fakeBackend) RecentMessages(context.Context, string, int) ([]opencode.Message, error) {
-	return nil, nil
+func (f *fakeBackend) RecentMessages(_ context.Context, sessionID string, _ int) ([]opencode.Message, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.messages[sessionID], f.messagesErr
 }
 
-func (f *fakeBackend) Permissions(context.Context, string) ([]opencode.PermissionRequest, error) {
-	return nil, nil
+func (f *fakeBackend) Permissions(_ context.Context, sessionID string) ([]opencode.PermissionRequest, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.permissions[sessionID], nil
+}
+
+func (f *fakeBackend) ChildSessions(_ context.Context, parentID string) ([]opencode.Session, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.children[parentID], nil
 }
 
 func (f *fakeBackend) CancelForm(context.Context, string, string) error { return nil }

@@ -30,7 +30,8 @@ func (m *Manager) connect(ctx context.Context) error {
 
 func (m *Manager) streamLoop() {
 	opts := opencode.StreamOptions{
-		OnError: func(err error) { m.opts.Logger.Info("event stream interrupted", "error", err) },
+		OnConnect: m.requestReconcile,
+		OnError:   func(err error) { m.opts.Logger.Info("event stream interrupted", "error", err) },
 	}
 	_ = m.opts.Backend.Stream(m.ctx, opts, m.handleEvent)
 }

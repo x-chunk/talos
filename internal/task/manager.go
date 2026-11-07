@@ -34,6 +34,7 @@ type Backend interface {
 	ActiveSessions(ctx context.Context) (map[string]bool, error)
 	RecentMessages(ctx context.Context, sessionID string, limit int) ([]opencode.Message, error)
 	Permissions(ctx context.Context, sessionID string) ([]opencode.PermissionRequest, error)
+	ChildSessions(ctx context.Context, parentID string) ([]opencode.Session, error)
 	CancelForm(ctx context.Context, sessionID, formID string) error
 	Stream(ctx context.Context, opts opencode.StreamOptions, handle func(opencode.Event)) error
 }
@@ -87,6 +88,9 @@ type Manager struct {
 	// interruptSent records when a watchdog's interrupt went out, per task. It is
 	// not persisted: after a restart the deadline simply starts over.
 	interruptSent map[string]time.Time
+
+	// reconcileNow asks reconcileLoop for a pass without blocking the caller.
+	reconcileNow chan struct{}
 }
 
 // NewManager returns a manager. Call Run to start its background work.
@@ -111,6 +115,7 @@ func NewManager(opts Options) *Manager {
 		persist: make(chan struct{}, 1),
 
 		interruptSent: make(map[string]time.Time),
+		reconcileNow:  make(chan struct{}, 1),
 	}
 }
 
@@ -122,6 +127,7 @@ func (m *Manager) Run(ctx context.Context) {
 
 	m.wg.Go(m.writeLoop)
 	m.wg.Go(m.watchdogLoop)
+	m.wg.Go(m.reconcileLoop)
 	<-m.ctx.Done()
 	m.wg.Wait()
 	m.flush()
