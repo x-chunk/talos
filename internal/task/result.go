@@ -15,9 +15,10 @@ const (
 	// resultMessageLimit is how far back to look for the final answer. Tool-only
 	// messages can follow the last text block.
 	resultMessageLimit = 50
-	// transcriptMessageLimit caps what a transcript covers. OpenCode pages by
-	// cursor, and a transcript this long is already past what a reader can use.
-	transcriptMessageLimit = 500
+	// transcriptMessageLimit is the most OpenCode returns per request. Following
+	// its cursor for more is not worth it: a transcript this long is already past
+	// what an orchestrator should read.
+	transcriptMessageLimit = 200
 )
 
 // Result is what the orchestrator needs to judge a finished task.
@@ -148,7 +149,11 @@ func (m *Manager) Transcript(ctx context.Context, id string, offset int) (Page, 
 	if err != nil {
 		return Page{}, err
 	}
-	return paginate(formatTranscript(messages), offset, PageSize)
+	text := formatTranscript(messages)
+	if len(messages) == transcriptMessageLimit {
+		text = fmt.Sprintf("[older items omitted: showing the newest %d]\n%s", transcriptMessageLimit, text)
+	}
+	return paginate(text, offset, PageSize)
 }
 
 func formatTranscript(newestFirst []opencode.Message) string {

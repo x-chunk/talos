@@ -45,7 +45,8 @@ with HTML, so `/health` and `/doc` say nothing about server health. Use
 | Interrupt | `POST /api/session/{id}/interrupt` | Returns `{interrupted: bool}`. Idle is a harmless `false`. |
 | Session state | `GET /api/session/{id}` | `outcome` and `time.idle` are cleared while a turn runs. |
 | Running sessions | `GET /api/session/active` | A map from session ID to `{type: "running"}`. A session stays listed while waiting on a permission. |
-| Messages | `GET /api/session/{id}/message?order=desc&limit=N` | Cursor paging. |
+| Child sessions | `GET /api/session?parentID={id}` | Direct children only. Recovers children whose `session.created` was lost. |
+| Messages | `GET /api/session/{id}/message?order=desc&limit=N` | Cursor paging. `limit` above 200 answers 400. |
 | Pending permissions | `GET /api/session/{id}/permission` | Use the per-session route. The global `/api/permission/request` returned an empty list while a request was pending. |
 | Answer a permission | `POST /api/session/{id}/permission/{requestID}/reply` | Body: `decision` (`once`, `always`, `reject`), `message?`. The session in the path must own the request, which may be a child session. |
 | Pending forms | `GET /api/session/{id}/form` | Created by the `question` tool. |
@@ -101,7 +102,7 @@ downstream work, and clients must reconcile through REST after a reconnect.
 | `session.tool.called` | `id`, `input` | |
 | `session.tool.success` | `id`, `content` | |
 | `session.tool.failed` | `id`, `error{type,message}` | `permission.rejected` means a rule or reply denied the call. |
-| `session.usage.updated` | `cost`, `tokens` | |
+| `session.usage.updated` | `cost`, `tokens` | Cumulative for that session, so a task's total is a sum over its sessions' latest values. |
 | `session.text.ended` | `text` | Assistant text block finished. |
 | `permission.asked` | `id`, `sessionID`, `action`, `resources`, `save` | Blocks the turn until answered. |
 | `permission.replied` | `sessionID`, `requestID`, `reply` | |

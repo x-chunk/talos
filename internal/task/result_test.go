@@ -116,3 +116,15 @@ func TestDiffAndTranscript(t *testing.T) {
 		t.Errorf("transcript = %q", page.Text)
 	}
 }
+
+func TestTranscriptMarksOmittedHistory(t *testing.T) {
+	h := newHarness(t)
+	task := h.live()
+	h.backend.set(func(f *fakeBackend) {
+		f.messages = map[string][]opencode.Message{task.SessionID: make([]opencode.Message, transcriptMessageLimit)}
+	})
+	page, err := h.m.Transcript(t.Context(), task.ID, 0)
+	if err != nil || !strings.HasPrefix(page.Text, "[older items omitted") {
+		t.Errorf("page = %+v, err = %v", page, err)
+	}
+}
