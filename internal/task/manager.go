@@ -83,6 +83,10 @@ type Manager struct {
 
 	streamOnce  sync.Once
 	versionOnce sync.Once
+
+	// interruptSent records when a watchdog's interrupt went out, per task. It is
+	// not persisted: after a restart the deadline simply starts over.
+	interruptSent map[string]time.Time
 }
 
 // NewManager returns a manager. Call Run to start its background work.
@@ -105,6 +109,8 @@ func NewManager(opts Options) *Manager {
 		changed: make(chan struct{}),
 		dirty:   make(map[string]struct{}),
 		persist: make(chan struct{}, 1),
+
+		interruptSent: make(map[string]time.Time),
 	}
 }
 
@@ -115,6 +121,7 @@ func (m *Manager) Run(ctx context.Context) {
 	defer stop()
 
 	m.wg.Go(m.writeLoop)
+	m.wg.Go(m.watchdogLoop)
 	<-m.ctx.Done()
 	m.wg.Wait()
 	m.flush()
