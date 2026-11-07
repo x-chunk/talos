@@ -57,6 +57,17 @@ gofmt -l . && go build ./... && go vet ./... && go test -race ./...
 
 `gofmt -l` must print nothing.
 
+Integration tests run the real binary against a foreground `opencode serve` with
+isolated `XDG_*` directories:
+
+```sh
+go test -tags integration -timeout 10m ./test/integration
+```
+
+They use a free model, overridable with `TALOS_TEST_MODEL`, and skip a scenario
+when its quota runs out. A run with skips has not proven those scenarios, so read
+the output with `-v` before relying on it.
+
 ## Layout
 
 Dependencies point one way: `cmd/talos → internal/tools → internal/task →

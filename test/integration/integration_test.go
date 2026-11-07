@@ -289,7 +289,8 @@ func (c *client) start(repo, prompt string, extra map[string]any) started {
 	return out
 }
 
-// waitFor blocks until the task satisfies done, failing on a state it cannot leave.
+// waitFor blocks until the task reaches a wanted state, failing on any other state
+// it would not leave by itself.
 func (c *client) waitFor(id string, want ...string) status {
 	c.t.Helper()
 	deadline := time.Now().Add(5 * time.Minute)
@@ -299,6 +300,11 @@ func (c *client) waitFor(id string, want ...string) status {
 		}
 		c.call("wait_task", map[string]any{"task_ids": []string{id}, "timeout_seconds": 20}, &out)
 		got := out.Tasks[0]
+		// An exhausted quota says nothing about Talos, and failing here would read
+		// as a defect. It is a skip, so a run with skips has not proven the scenario.
+		if strings.Contains(got.Error, "provider.quota") {
+			c.t.Skipf("model quota exhausted: %s", got.Error)
+		}
 		for _, state := range want {
 			if got.State == state {
 				return got
@@ -529,8 +535,8 @@ func readRecord(t *testing.T, state, id string) record {
 
 const sleepPrompt = "Run this exact command with the shell tool and wait for it: sleep 120\nThen reply with the single word done."
 
-// waitToolRunning waits until the model has begun the turn, so an interruption
-// lands on real work.
+// waitSteps waits until the model has begun the turn, so an interruption lands on
+// real work.
 func (c *client) waitSteps(id string) {
 	c.t.Helper()
 	deadline := time.Now().Add(2 * time.Minute)
