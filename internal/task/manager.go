@@ -80,6 +80,9 @@ type Manager struct {
 	dirty   map[string]struct{}
 
 	persist chan struct{}
+
+	streamOnce  sync.Once
+	versionOnce sync.Once
 }
 
 // NewManager returns a manager. Call Run to start its background work.
@@ -307,7 +310,7 @@ func (m *Manager) startTurn(snapshot *Task) {
 	defer cancel()
 	id, turn := snapshot.ID, snapshot.Turn
 
-	if _, err := m.opts.Backend.Ensure(ctx); err != nil {
+	if err := m.connect(ctx); err != nil {
 		m.failTurn(id, turn, fmt.Errorf("OpenCode is not available: %w", err))
 		return
 	}

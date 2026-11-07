@@ -9,6 +9,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"maps"
 	"time"
 )
 
@@ -78,6 +79,13 @@ type PendingPermission struct {
 	AskedAt   time.Time `json:"asked_at"`
 }
 
+// Usage is one session's cumulative cost and token counts.
+type Usage struct {
+	Cost         float64 `json:"cost"`
+	InputTokens  int64   `json:"input_tokens"`
+	OutputTokens int64   `json:"output_tokens"`
+}
+
 // Task is the persisted record of one task. The manager owns live values; callers
 // only ever receive copies made by Clone.
 type Task struct {
@@ -100,6 +108,9 @@ type Task struct {
 	// Children are the sub-sessions spawned by the root session's task tool.
 	Children []string `json:"children,omitempty"`
 
+	// Usage holds each session's latest cumulative usage. OpenCode reports totals
+	// per session, so the task's figures are sums over this map.
+	Usage         map[string]Usage    `json:"usage,omitempty"`
 	Steps         int                 `json:"steps"`
 	Cost          float64             `json:"cost"`
 	InputTokens   int64               `json:"input_tokens"`
@@ -130,6 +141,7 @@ type Task struct {
 // Clone returns a copy that shares no mutable state with t.
 func (t *Task) Clone() *Task {
 	c := *t
+	c.Usage = maps.Clone(t.Usage)
 	c.Children = append([]string(nil), t.Children...)
 	c.Pending = make([]PendingPermission, len(t.Pending))
 	for i, p := range t.Pending {
