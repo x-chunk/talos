@@ -79,6 +79,14 @@ func (c *Client) GetSession(ctx context.Context, sessionID string) (Session, err
 	return session, err
 }
 
+// ChildSessions returns the sessions spawned directly by parentID. It recovers
+// children whose session.created event was lost.
+func (c *Client) ChildSessions(ctx context.Context, parentID string) ([]Session, error) {
+	var sessions []Session
+	err := c.do(ctx, http.MethodGet, "/api/session", url.Values{"parentID": {parentID}}, nil, &sessions)
+	return sessions, err
+}
+
 // ActiveSessions returns the IDs of sessions with a running turn. A session
 // waiting on a permission is still listed.
 func (c *Client) ActiveSessions(ctx context.Context) (map[string]bool, error) {

@@ -114,3 +114,18 @@ func TestPathsEscapeIDs(t *testing.T) {
 		t.Errorf("path = %q", rec.path)
 	}
 }
+
+func TestChildSessions(t *testing.T) {
+	var query string
+	c := serve(t, func(w http.ResponseWriter, r *http.Request) {
+		query = r.URL.RawQuery
+		w.Write([]byte(`{"data":[{"id":"ses_c","parentID":"ses_p"}]}`))
+	})
+	children, err := c.ChildSessions(t.Context(), "ses_p")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(children) != 1 || children[0].ID != "ses_c" || query != "parentID=ses_p" {
+		t.Errorf("children = %+v, query = %q", children, query)
+	}
+}
