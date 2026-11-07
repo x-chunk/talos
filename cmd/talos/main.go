@@ -61,6 +61,7 @@ func run() error {
 		PermissionTimeout: cfg.PermissionTimeout,
 		ResultLimit:       cfg.ResultLimit,
 		ShellDeny:         cfg.ShellDeny,
+		ShellAsk:          cfg.ShellAsk,
 		Logger:            logger,
 	})
 	manager.Adopt()

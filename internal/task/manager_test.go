@@ -264,6 +264,17 @@ func TestSessionRulesPutDeniesAfterAllow(t *testing.T) {
 	}
 }
 
+func TestDenyOverridesAskForTheSameCommand(t *testing.T) {
+	h := newHarness(t, func(o *Options) {
+		o.ShellAsk = []string{"git *"}
+		o.ShellDeny = []string{"git push*"}
+	})
+	rules := h.m.sessionRules()
+	if ask, deny := rules[len(rules)-2], rules[len(rules)-1]; ask.Effect != opencode.EffectAsk || deny.Effect != opencode.EffectDeny {
+		t.Errorf("ask = %+v, deny = %+v", ask, deny)
+	}
+}
+
 func TestStartValidation(t *testing.T) {
 	h := newHarness(t)
 	outside, _ := filepath.EvalSymlinks(t.TempDir())

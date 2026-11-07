@@ -56,6 +56,9 @@ type Options struct {
 	PermissionTimeout time.Duration
 	ResultLimit       int
 	ShellDeny         []string
+	// ShellAsk lists shell patterns that wait for respond_permission. Everything
+	// else is pre-decided, so without these a task never asks.
+	ShellAsk []string
 
 	// PID identifies this instance as task owner. Default os.Getpid().
 	PID int
@@ -279,6 +282,10 @@ func (m *Manager) sessionRules() []opencode.PermissionRule {
 		{Action: "external_directory", Resource: "*", Effect: opencode.EffectDeny},
 		{Action: "question", Resource: "*", Effect: opencode.EffectDeny},
 	}
+	for _, pattern := range m.opts.ShellAsk {
+		rules = append(rules, opencode.PermissionRule{Action: "shell", Resource: pattern, Effect: opencode.EffectAsk})
+	}
+	// Last, so a command matching both is denied rather than offered for approval.
 	for _, pattern := range m.opts.ShellDeny {
 		rules = append(rules, opencode.PermissionRule{Action: "shell", Resource: pattern, Effect: opencode.EffectDeny})
 	}

@@ -45,6 +45,7 @@ func TestOverrides(t *testing.T) {
 		"TALOS_TASK_TIMEOUT":  "1h",
 		"TALOS_DEFAULT_MODEL": "opencode/x",
 		"TALOS_SHELL_DENY":    "a *, b *",
+		"TALOS_SHELL_ASK":     "c *",
 		"TALOS_ALLOWED_ROOTS": link,
 		"TALOS_STATE_DIR":     "/s",
 	}), "/unused")
@@ -56,6 +57,9 @@ func TestOverrides(t *testing.T) {
 	}
 	if !slices.Equal(cfg.ShellDeny, []string{"a *", "b *"}) {
 		t.Errorf("shell deny = %v", cfg.ShellDeny)
+	}
+	if !slices.Equal(cfg.ShellAsk, []string{"c *"}) {
+		t.Errorf("shell ask = %v", cfg.ShellAsk)
 	}
 	if !slices.Equal(cfg.AllowedRoots, []string{dir}) {
 		t.Errorf("roots = %v, want the resolved %s", cfg.AllowedRoots, dir)

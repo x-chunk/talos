@@ -36,6 +36,7 @@ type Config struct {
 	PermissionTimeout time.Duration
 	ResultLimit       int
 	ShellDeny         []string
+	ShellAsk          []string
 	StateDir          string
 }
 
@@ -65,6 +66,8 @@ func Load(getenv func(string) string, workDir string) (Config, error) {
 	if raw, ok := lookup(getenv, "TALOS_SHELL_DENY"); ok {
 		cfg.ShellDeny = splitTrim(raw, ",")
 	}
+
+	cfg.ShellAsk = splitTrim(getenv("TALOS_SHELL_ASK"), ",")
 
 	roots := splitTrim(getenv("TALOS_ALLOWED_ROOTS"), ":")
 	if len(roots) == 0 {
