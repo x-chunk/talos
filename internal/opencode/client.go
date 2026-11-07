@@ -32,6 +32,8 @@ type Client struct {
 
 	mu       sync.RWMutex
 	endpoint Endpoint
+	// refresh, if set, supplies new credentials after a 401.
+	refresh func() (Endpoint, error)
 }
 
 // NewClient returns a client for endpoint. A nil httpClient means
@@ -106,7 +108,22 @@ func (c *Client) newRequest(ctx context.Context, method, path string, query url.
 }
 
 // do sends a JSON request and decodes the response into out, which may be nil.
+// A 401 triggers one retry with refreshed credentials, because the service
+// generates a new password when it restarts.
 func (c *Client) do(ctx context.Context, method, path string, query url.Values, in, out any) error {
+	err := c.attempt(ctx, method, path, query, in, out)
+	if !IsUnauthorized(err) || c.refresh == nil {
+		return err
+	}
+	endpoint, refreshErr := c.refresh()
+	if refreshErr != nil {
+		return err
+	}
+	c.SetEndpoint(endpoint)
+	return c.attempt(ctx, method, path, query, in, out)
+}
+
+func (c *Client) attempt(ctx context.Context, method, path string, query url.Values, in, out any) error {
 	var body io.Reader
 	if in != nil {
 		encoded, err := json.Marshal(in)

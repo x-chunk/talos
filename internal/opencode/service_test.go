@@ -100,3 +100,8 @@ func TestStartExplicitRunsNothing(t *testing.T) {
 		t.Errorf("ep = %+v, err = %v", ep, err)
 	}
 }
+
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
