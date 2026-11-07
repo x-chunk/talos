@@ -34,9 +34,16 @@ func clocked(t *testing.T, mutate ...func(*Options)) (*harness, *fakeClock) {
 	return h, clock
 }
 
+// keepActive makes reconciliation see the session as still running, as a real
+// server does while it works through an interrupt.
+func (h *harness) keepActive(sessionID string) {
+	h.backend.set(func(f *fakeBackend) { f.active = map[string]bool{sessionID: true} })
+}
+
 func TestTimeoutInterruptsThenEndsAsTimedOut(t *testing.T) {
 	h, clock := clocked(t, func(o *Options) { o.Timeout = time.Minute })
 	task := h.live()
+	h.keepActive(task.SessionID)
 
 	clock.Advance(59 * time.Second)
 	h.m.checkLimits()
@@ -72,6 +79,7 @@ func TestPerTaskTimeoutOverridesDefault(t *testing.T) {
 func TestPermissionTimeoutAborts(t *testing.T) {
 	h, clock := clocked(t, func(o *Options) { o.PermissionTimeout = time.Minute })
 	task := h.live()
+	h.keepActive(task.SessionID)
 	h.m.handleEvent(event(opencode.EventPermissionAsked, map[string]any{"id": "p", "sessionID": task.SessionID}))
 	clock.Advance(2 * time.Minute)
 	h.m.checkLimits()
@@ -86,6 +94,7 @@ func TestPermissionTimeoutAborts(t *testing.T) {
 func TestUnansweredInterruptEndsTaskAfterGrace(t *testing.T) {
 	h, clock := clocked(t, func(o *Options) { o.Timeout = time.Minute })
 	task := h.live()
+	h.keepActive(task.SessionID)
 	clock.Advance(2 * time.Minute)
 	h.m.checkLimits()
 	clock.Advance(interruptGrace - time.Second)

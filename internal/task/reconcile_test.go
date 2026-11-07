@@ -156,3 +156,17 @@ func TestReconcileSkipsTurnsNotYetSent(t *testing.T) {
 		t.Errorf("state = %s", got.State)
 	}
 }
+
+func TestReconcileLostSessionFollowsIntent(t *testing.T) {
+	h, clock := clocked(t)
+	task := h.live()
+	h.m.update(task.ID, func(tk *Task) bool {
+		tk.Intent = IntentTimeout
+		return true
+	})
+	clock.Advance(reconcileGrace + time.Second)
+	h.m.reconcile(t.Context())
+	if got := h.get(task.ID); got.State != StateTimedOut {
+		t.Errorf("state = %s", got.State)
+	}
+}

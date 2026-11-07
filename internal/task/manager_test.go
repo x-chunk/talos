@@ -34,6 +34,7 @@ type fakeBackend struct {
 	messagesErr error
 	permissions map[string][]opencode.PermissionRequest
 	children    map[string][]opencode.Session
+	replyHook   func(string)
 }
 
 func (f *fakeBackend) Ensure(context.Context) (opencode.Info, error) {
@@ -80,7 +81,12 @@ func (f *fakeBackend) Interrupt(_ context.Context, sessionID string) (bool, erro
 	return true, nil
 }
 
-func (f *fakeBackend) ReplyPermission(context.Context, string, string, string, string) error {
+func (f *fakeBackend) ReplyPermission(_ context.Context, session, request, decision, message string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.replyHook != nil {
+		f.replyHook(session + "/" + request + "/" + decision + "/" + message)
+	}
 	return nil
 }
 

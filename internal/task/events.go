@@ -274,5 +274,7 @@ func (m *Manager) requestInterruptLocked(t *Task, intent Intent) {
 		if _, err := m.opts.Backend.Interrupt(ctx, sessionID); err != nil {
 			m.opts.Logger.Warn("interrupt session", "session", sessionID, "error", err)
 		}
+		// The interruption's event can be lost like any other.
+		m.requestReconcile()
 	})
 }

@@ -155,6 +155,12 @@ func (m *Manager) settleInactive(ctx context.Context, snapshot *Task) {
 		if !lost && m.opts.Now().Sub(t.PromptSentAt) < reconcileGrace {
 			return false
 		}
+		// Talos was already stopping this session, so its absence is the expected
+		// result and the recorded intent still decides.
+		if t.Intent != IntentNone {
+			m.finishLocked(t, interruptedState(t.Intent, ""))
+			return true
+		}
 		t.Error = "session lost"
 		m.finishLocked(t, StateFailed)
 		return true

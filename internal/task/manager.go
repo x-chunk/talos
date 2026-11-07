@@ -92,6 +92,9 @@ type Manager struct {
 
 	// reconcileNow asks reconcileLoop for a pass without blocking the caller.
 	reconcileNow chan struct{}
+
+	// cleaning marks tasks in the middle of Cleanup, which must not be restarted.
+	cleaning map[string]bool
 }
 
 // NewManager returns a manager. Call Adopt and then Run to start it.
@@ -117,6 +120,7 @@ func NewManager(opts Options) *Manager {
 
 		interruptSent: make(map[string]time.Time),
 		reconcileNow:  make(chan struct{}, 1),
+		cleaning:      make(map[string]bool),
 	}
 }
 
