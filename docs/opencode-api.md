@@ -17,7 +17,7 @@ and may change without notice between releases.
 | Status | `opencode service status` | Prints the URL, or `stopped`. |
 | Password | `opencode service get password` | Prints the raw password. |
 | Foreground | `opencode serve --hostname H --port P` | Takes `OPENCODE_SERVER_PASSWORD`, or generates and prints one. |
-| Registration file | `$XDG_STATE_HOME/opencode/service.json` | Mode 0600. Holds `id`, `version`, `url`, `pid`, `password`. |
+| Registration file | `$XDG_STATE_HOME/opencode/service.json` | Mode 0600. Holds `id`, `version`, `url`, `pid`, `password`. Removed by `service stop`. Reading it has no side effects, unlike the CLI. |
 
 **Ordinary CLI commands start the service as a side effect.** `opencode models`
 left a `serve --service` process running after `service status` had reported
@@ -51,7 +51,8 @@ with HTML, so `/health` and `/doc` say nothing about server health. Use
 | Pending forms | `GET /api/session/{id}/form` | Created by the `question` tool. |
 | Cancel a form | `DELETE /api/session/{id}/form/{formID}` | Interrupts the turn with reason `shutdown`. |
 
-Successful responses usually wrap the payload in `{data: ...}`. Errors are JSON
+Successful responses usually wrap the payload in `{data: ...}`, but `/api/info`
+and `interrupt` answer bare. Errors are JSON
 with a `_tag`, for example `{"_tag":"UnauthorizedError","message":"..."}`.
 
 Nothing validates a session up front. `POST /api/session` accepts a directory
