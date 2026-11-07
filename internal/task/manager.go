@@ -93,7 +93,7 @@ type Manager struct {
 	reconcileNow chan struct{}
 }
 
-// NewManager returns a manager. Call Run to start its background work.
+// NewManager returns a manager. Call Adopt and then Run to start it.
 func NewManager(opts Options) *Manager {
 	if opts.Now == nil {
 		opts.Now = time.Now
@@ -124,6 +124,9 @@ func NewManager(opts Options) *Manager {
 func (m *Manager) Run(ctx context.Context) {
 	stop := context.AfterFunc(ctx, m.cancel)
 	defer stop()
+
+	m.dispatch()
+	m.requestReconcile()
 
 	m.wg.Go(m.writeLoop)
 	m.wg.Go(m.watchdogLoop)

@@ -161,6 +161,7 @@ func newHarness(t *testing.T, mutate ...func(*Options)) *harness {
 		fn(&opts)
 	}
 	m := NewManager(opts)
+	m.Adopt()
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan struct{})
 	go func() {
