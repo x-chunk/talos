@@ -29,6 +29,18 @@ commit messages and tool descriptions.
 - When behavior depends on something OpenCode does, say so in the comment and
   keep the details in `docs/opencode-api.md`.
 
+## Project documents
+
+- `docs/opencode-api.md`: the verified OpenCode API contract. Update it when
+  OpenCode behaves differently from what it says.
+
+## Working with OpenCode
+
+Ordinary `opencode` CLI commands start the user's background service as a side
+effect, and live sessions write to the user's database. Run experiments and
+integration tests against a foreground `opencode serve` with isolated `XDG_*`
+directories.
+
 ## Keeping this file current
 
 Update `AGENTS.md` whenever development changes what it says or adds something
