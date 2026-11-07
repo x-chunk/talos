@@ -110,6 +110,10 @@ type Task struct {
 	Pending       []PendingPermission `json:"pending,omitempty"`
 	Intent        Intent              `json:"intent,omitempty"`
 
+	// Turn counts prompts started. In-flight work carries the turn it belongs to
+	// and gives up if the task has moved on.
+	Turn int `json:"turn"`
+
 	// OwnerPID is the Talos process enforcing this task's limits.
 	OwnerPID int `json:"owner_pid"`
 
