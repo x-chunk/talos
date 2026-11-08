@@ -1,0 +1,32 @@
+# GoReleaser builds the release archives for a v* tag. See
+# .github/workflows/release.yml for the pipeline that runs it.
+version: 2
+
+builds:
+  - main: ./cmd/talos
+    env:
+      - CGO_ENABLED=0
+    # Windows is left out: the task store relies on flock and process checks
+    # that only exist on Unix.
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+
+archives:
+  - formats: [tar.gz]
+    files:
+      - README.md
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  use: git
+  sort: asc

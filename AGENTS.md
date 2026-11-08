@@ -75,3 +75,11 @@ Dependencies point one way: `cmd/talos → internal/tools → internal/task →
 Only `cmd/talos` and `internal/tools` import Argon, so task logic is testable
 without MCP. Task tests use a fake `task.Backend` and real temporary git
 repositories.
+
+## Releases
+
+Pushing a `v*` tag runs `.github/workflows/release.yml`: the checks above, then
+GoReleaser with `.goreleaser.yaml`, which publishes linux and darwin archives
+for amd64 and arm64 to a GitHub release. Windows is not built because the task
+store uses `flock` and `kill(pid, 0)`. Validate config changes locally with
+`goreleaser check` and `goreleaser build --snapshot --clean`.
