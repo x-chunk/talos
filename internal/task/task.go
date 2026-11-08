@@ -110,11 +110,13 @@ type Task struct {
 
 	// Usage holds each session's latest cumulative usage. OpenCode reports totals
 	// per session, so the task's figures are sums over this map.
-	Usage         map[string]Usage    `json:"usage,omitempty"`
-	Steps         int                 `json:"steps"`
-	Cost          float64             `json:"cost"`
-	InputTokens   int64               `json:"input_tokens"`
-	OutputTokens  int64               `json:"output_tokens"`
+	Usage        map[string]Usage `json:"usage,omitempty"`
+	Steps        int              `json:"steps"`
+	Cost         float64          `json:"cost"`
+	InputTokens  int64            `json:"input_tokens"`
+	OutputTokens int64            `json:"output_tokens"`
+	// Progress describes what the current turn is doing. It is empty once the
+	// task finishes, so a stale tool name never looks like live work.
 	Progress      string              `json:"progress,omitempty"`
 	Error         string              `json:"error,omitempty"`
 	DeniedActions int                 `json:"denied_actions"`
@@ -177,6 +179,7 @@ func (t *Task) transition(to State, now time.Time) error {
 	t.State = to
 	if to.Finished() {
 		t.FinishedAt = now
+		t.Progress = ""
 		t.Pending = nil
 		t.Intent = IntentNone
 	} else {

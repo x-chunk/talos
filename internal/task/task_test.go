@@ -39,13 +39,13 @@ func TestTransitions(t *testing.T) {
 	}
 }
 
-func TestFinishingClearsPendingAndIntent(t *testing.T) {
+func TestFinishingClearsTurnState(t *testing.T) {
 	now := time.Unix(100, 0)
-	task := &Task{State: StateRunning, Pending: []PendingPermission{{ID: "p"}}, Intent: IntentTimeout}
+	task := &Task{State: StateRunning, Pending: []PendingPermission{{ID: "p"}}, Intent: IntentTimeout, Progress: "running tool edit"}
 	if err := task.transition(StateTimedOut, now); err != nil {
 		t.Fatal(err)
 	}
-	if task.Pending != nil || task.Intent != IntentNone || !task.FinishedAt.Equal(now) {
+	if task.Pending != nil || task.Intent != IntentNone || task.Progress != "" || !task.FinishedAt.Equal(now) {
 		t.Errorf("task = %+v", task)
 	}
 	if err := task.transition(StateQueued, now); err != nil {
