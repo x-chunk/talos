@@ -24,6 +24,13 @@ left a `serve --service` process running after `service status` had reported
 `stopped`. Tests must set their own `XDG_*` directories and use a foreground
 server so they never touch the user's service.
 
+**The managed service listens on a fixed port, 49374 by default, whatever the
+`XDG_*` directories say.** A service started with isolated directories fails
+with "Managed service port 49374 on 127.0.0.1 is already in use" while another
+service holds the port. An isolated service needs its own port, set with
+`opencode service set port <port>` under the same `XDG_*` directories. Verified
+with OpenCode 2.0.32.
+
 `opencode serve --stdio` looks attractive because it stops when stdin closes,
 but according to its bundled source it discards any configured password and
 generates a random one it does not print, so a client cannot authenticate.
